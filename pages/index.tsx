@@ -1,6 +1,6 @@
 import Head from 'next/head'
 
-const domain = process.env.NEXT_PUBLIC_SERVER_DOMAIN || "https://next-iframe-poc-server.vercel.app"
+const domain = process.env.NEXT_PUBLIC_SERVER_DOMAIN || "https://next-iframe-poc-server.vercel.app/a"
 
 console.log('domain', domain)
 
