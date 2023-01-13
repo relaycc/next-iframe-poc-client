@@ -1,5 +1,9 @@
 import Head from 'next/head'
 
+const domain = process.env.NEXT_PUBLIC_SERVER_DOMAIN || "https://next-iframe-poc-server.vercel.app"
+
+console.log('domain', domain)
+
 export default function Home() {
   return (
     <>
@@ -11,7 +15,7 @@ export default function Home() {
       </Head>
       <main>
         <h1>Next IFrame Poc Client</h1>
-        <iframe src="https://next-iframe-poc-server.vercel.app/a" />
+        <iframe src={domain} />
       </main>
     </>
   )
