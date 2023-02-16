@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import Head from "next/head";
 import "@rainbow-me/rainbowkit/styles.css";
 import {
@@ -17,6 +17,10 @@ import { mainnet, polygon, optimism, arbitrum } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
 import * as Comlink from "comlink";
 import { FunctionComponent, ReactNode, useEffect } from "react";
+import { useAccount, useSigner } from "wagmi";
+import { Signer } from "ethers";
+import { fetchSigner } from "@wagmi/core";
+
 const { chains, provider } = configureChains(
   [mainnet, polygon, optimism, arbitrum],
   [publicProvider()]
@@ -28,14 +32,17 @@ const { connectors } = getDefaultWallets({
 });
 
 const wagmiClient = createClient({
-  autoConnect: true,
+  autoConnect: false,
   connectors,
   provider,
 });
 
-const domain =
-  process.env.NEXT_PUBLIC_SERVER_DOMAIN ||
-  "https://next-iframe-poc-server.vercel.app/a";
+/* const domain =
+ *   process.env.NEXT_PUBLIC_SERVER_DOMAIN ||
+ *   "https://next-iframe-poc-server.vercel.app/a";
+ *  */
+
+const domain = "http://localhost:3001/receiver";
 
 export default function Home() {
   return (
@@ -49,7 +56,7 @@ export default function Home() {
         </Head>
         <main>
           <h1>Next IFrame Poc Client</h1>
-          <iframe src={domain} />
+          <iframe height="800" width="800" src={domain} />
         </main>
         <WalletExample>
           <ConnectButton />
@@ -59,10 +66,18 @@ export default function Home() {
   );
 }
 
+interface IRemoteActions {
+  con: (isConnected: boolean, address: string, signer: any) => void;
+}
+
+let signerSet = false;
 let init = false;
+let init2 = false;
 const WalletExample: FunctionComponent<{
   children: ReactNode;
 }> = ({ children }) => {
+  const { address, isConnected } = useAccount();
+  const { data: signer } = useSigner();
   const { signMessageAsync } = useSignMessage();
   const { openConnectModal } = useConnectModal();
   useEffect(() => {
@@ -72,7 +87,9 @@ const WalletExample: FunctionComponent<{
       init = true;
       Comlink.expose(
         {
-          connect: () => openConnectModal && openConnectModal(),
+          connect: () => {
+            openConnectModal && openConnectModal();
+          },
           async sign(message: string, cb: (value: string) => void) {
             cb(await signMessageAsync({ message }));
           },
@@ -81,6 +98,46 @@ const WalletExample: FunctionComponent<{
       );
     }
   }, [openConnectModal, signMessageAsync]);
+
+  useEffect(() => {
+    try {
+      Comlink.expose(
+        {
+          async xmtp(cb: (wallet: Signer) => void) {
+            cb(Comlink.proxy(signer));
+          },
+        },
+        Comlink.windowEndpoint(window)
+      );
+    } catch (e) {
+      console.error("error, HOST", { e });
+    }
+  }, [signer, isConnected]);
+
+  const [actions, setActions] = useState<IRemoteActions | null>(null);
+  useEffect(() => {
+    const iframe = document.querySelector("iframe");
+    if (!init2 || !iframe?.contentWindow) {
+      init2 = true;
+      setTimeout(() => {
+        setActions(() => {
+          return Comlink.wrap<IRemoteActions>(
+            Comlink.windowEndpoint(iframe!.contentWindow!)
+          );
+        });
+      }, 1000);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (actions && !signerSet) {
+      actions.con(isConnected, address as string, null);
+      if (signer && !signerSet) {
+        actions.con(isConnected, address as string, Comlink.proxy(signer));
+        signerSet = true;
+      }
+    }
+  }, [actions, isConnected, address, signer]);
 
   return <>{children}</>;
 };
