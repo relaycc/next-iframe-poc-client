@@ -3,9 +3,20 @@ import { useEffect, useState } from "react";
 import { useAccount, useSigner } from "wagmi";
 import * as Comlink from "comlink";
 
+export interface Conversation {
+  peerAddress: `${"0x"}${string}`;
+  context?: {
+    conversationId: string;
+    metadata: {
+      [key: string]: string;
+    };
+  };
+}
+
 interface IRemoteActions {
   con: (isConnected: boolean, address: string, signer: any) => void;
   setOpen: (isOpen: boolean) => void;
+  setConversation: (conversation: Conversation) => void;
 }
 
 let signerSet = false;
@@ -14,9 +25,11 @@ let init2 = false;
 export const useWallet = ({
   isOpen,
   setIsOpen,
+  conversation,
 }: {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  conversation?: Conversation;
 }) => {
   const { address, isConnected } = useAccount();
   const { data: signer } = useSigner();
@@ -72,5 +85,11 @@ export const useWallet = ({
     }
   }, [isOpen, actions]);
 
-  return null;
+  useEffect(() => {
+    if (!conversation || !actions?.setConversation || !isOpen) {
+      return;
+    }
+    actions.setConversation(conversation);
+    console.log("setConversation", { conversation });
+  }, [actions, conversation, isOpen]);
 };

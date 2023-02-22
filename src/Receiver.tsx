@@ -1,5 +1,5 @@
 import React from "react";
-import { useWallet } from "./useWallet";
+import { Conversation, useWallet } from "./useWallet";
 
 const domain = "http://localhost:3001/receiver";
 
@@ -7,12 +7,14 @@ export function Receiver({
   styles,
   isOpen,
   setIsOpen,
+  conversation,
 }: {
   styles?: any;
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  conversation?: Conversation;
 }) {
-  useWallet({ isOpen, setIsOpen });
+  useWallet({ isOpen, setIsOpen, conversation });
 
   return (
     <>

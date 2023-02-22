@@ -1,5 +1,5 @@
 import { NextPage } from "next";
-import { Receiver, Button, ReceiverWithButton } from "../src";
+import { Receiver, Button, ReceiverWithButton, Conversation } from "../src";
 import { mainnet, polygon, optimism, arbitrum } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
 import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
@@ -22,6 +22,10 @@ const wagmiClient = createClient({
   provider,
 });
 
+const conversation: Conversation = {
+  peerAddress: "0xd7bE26b1dD12a7C6de8047AA8d9e14ad35b1C6D6",
+};
+
 const Example: NextPage = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -36,6 +40,7 @@ const Example: NextPage = () => {
             bottom: "6rem",
             right: "1rem",
           }}
+          conversation={conversation}
         />
         <Button
           handleClick={() => setIsOpen(!isOpen)}

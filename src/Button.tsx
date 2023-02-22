@@ -1,10 +1,10 @@
-import React, { ComponentProps } from "react";
+import React, { CSSProperties } from "react";
 
 export function Button({
   styles,
   handleClick,
 }: {
-  styles?: ComponentProps<"button">;
+  styles?: CSSProperties;
   handleClick: () => void;
 }) {
   return (
