@@ -1,0 +1,36 @@
+import React from "react";
+import { useWallet } from "./useWallet";
+
+const domain = "http://localhost:3001/receiver";
+
+export function Receiver({
+  styles,
+  isOpen,
+  setIsOpen,
+}: {
+  styles?: any;
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
+  useWallet({ isOpen, setIsOpen });
+
+  return (
+    <>
+      <iframe
+        src={domain}
+        style={{
+          pointerEvents: isOpen ? "auto" : "none",
+          position: "fixed",
+          border: "none",
+          bottom: "1rem",
+          right: "1rem",
+          maxWidth: "401px",
+          maxHeight: "700px",
+          width: "100%",
+          height: "100%",
+          ...styles,
+        }}
+      />
+    </>
+  );
+}
