@@ -8,13 +8,17 @@ export function Receiver({
   isOpen,
   setIsOpen,
   conversation,
+  wallet,
+  handleConnectWallet,
 }: {
   styles?: any;
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   conversation?: Conversation;
+  wallet?: any;
+  handleConnectWallet?: () => void;
 }) {
-  useWallet({ isOpen, setIsOpen, conversation });
+  useWallet({ wallet, handleConnectWallet, isOpen, setIsOpen, conversation });
 
   return (
     <>

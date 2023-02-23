@@ -1,6 +1,4 @@
-import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useEffect, useState } from "react";
-import { useAccount, useSigner } from "wagmi";
 import * as Comlink from "comlink";
 
 export interface Conversation {
@@ -19,22 +17,35 @@ interface IRemoteActions {
   setConversation: (conversation: Conversation) => void;
 }
 
-let signerSet = false;
 let init = false;
 let init2 = false;
 export const useWallet = ({
+  wallet,
+  handleConnectWallet,
   isOpen,
   setIsOpen,
   conversation,
 }: {
+  wallet: any;
+  handleConnectWallet?: () => void;
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   conversation?: Conversation;
 }) => {
-  const { address, isConnected } = useAccount();
-  const { data: signer } = useSigner();
-  const { openConnectModal } = useConnectModal();
   const [actions, setActions] = useState<IRemoteActions | null>(null);
+  const [address, setAddress] = useState<string | null>(null);
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!wallet) {
+      setAddress(null);
+      setIsConnected(false);
+      return;
+    }
+
+    setAddress(wallet._address);
+    setIsConnected(true);
+  }, [wallet]);
 
   useEffect(() => {
     if (init) {
@@ -44,7 +55,7 @@ export const useWallet = ({
       Comlink.expose(
         {
           connect: () => {
-            openConnectModal && openConnectModal();
+            handleConnectWallet && handleConnectWallet();
           },
           setOpen: (isOpen: boolean) => {
             setIsOpen(isOpen);
@@ -53,7 +64,7 @@ export const useWallet = ({
         Comlink.windowEndpoint(window)
       );
     }
-  }, [openConnectModal, setIsOpen]);
+  }, [handleConnectWallet, setIsOpen]);
 
   useEffect(() => {
     const iframe = document.querySelector("iframe");
@@ -70,14 +81,14 @@ export const useWallet = ({
   }, []);
 
   useEffect(() => {
-    if (actions && !signerSet) {
-      actions.con(isConnected, address as string, null);
-      if (signer && !signerSet) {
-        actions.con(isConnected, address as string, Comlink.proxy(signer));
-        signerSet = true;
-      }
+    if (actions) {
+      actions.con(
+        isConnected,
+        address as string,
+        !wallet ? null : Comlink.proxy(wallet)
+      );
     }
-  }, [actions, isConnected, address, signer]);
+  }, [actions, isConnected, address, wallet]);
 
   useEffect(() => {
     if (actions) {
@@ -90,6 +101,5 @@ export const useWallet = ({
       return;
     }
     actions.setConversation(conversation);
-    console.log("setConversation", { conversation });
   }, [actions, conversation, isOpen]);
 };
